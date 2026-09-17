@@ -5,6 +5,25 @@ A hands-on demonstration of identifying SQL injection vulnerabilities, executing
 
 ---
 
+### Lab Setup & Environment
+
+| Component | Specification |
+|---|---|
+| **Target Application** | OWASP Juice Shop (Node.js / Express / Angular / SQLite / Sequelize ORM) |
+| **Host Environment** | Kali Linux |
+| **Interception Proxy** | Burp Suite Community Edition |
+| **Testing Target** | `http://localhost:3000` |
+
+### Methodology
+
+1. **Identification:** Enumerate user input fields across the application (e.g., product search bar, user login fields).
+2. **Probing:** Inject baseline test characters (`'`, `"`, `--`, `/*`) to observe response codes, and leaked database error messages.
+3. **Exploitation:** Construct specific attack payloads tailored to target vulnerabilities (Authentication Bypass, Column Count Enumeration, Data Extraction via `UNION SELECT`).
+4. **Documentation:** Log complete request/response pairs, payloads, and high-resolution visual evidence.
+5. **Remediation & Verification:** Fixing backend code using prepared statements and re-test all endpoints to confirm zero exploitability.
+
+---
+
 ### Exploitation and Findings
 Three categories of vulnerabilities were identified by looking at search boxes and login pages which are the injection points.
 ### 1. Injected Request (Error-based SQL injection)
