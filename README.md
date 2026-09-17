@@ -96,3 +96,60 @@ Executing the payload appends all user records (IDs, email addresses, and passwo
 
 [![Project Dashboard](assets/screenshot7.png)](assets/dashboard-screenshot.png)
 
+---
+
+### Mitigation & Secure Code Implementation
+### 1. Parameterized Queries (Prepared Statements)
+* Vulnerable Implementation (Dynamic String Concatenation)
+```Javascript
+// Dynamic template string allows SQL command injection
+models.sequelize.query(
+  `SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`,
+  { model: UserModel, plain: true, type: models.Sequelize.QueryTypes.SELECT }
+)
+```
+* Secure Implementation(Parameterized Placeholders)
+```Javascript
+// Secure parameterized binding using $1 and $2 placeholders
+return (req: Request, res: Response, next: NextFunction) => {
+  models.sequelize.query(
+    'SELECT * FROM Users WHERE email = $1 AND password = $2 AND deletedAt IS NULL',
+    {
+      bind: [req.body.email, security.hash(req.body.password)],
+      model: models.User,
+      plain: true
+    }
+  )
+  .then((authenticatedUser) => {
+    // Authentication logic
+  });
+};
+```
+
+### 2. Layered Defense Architecture
+* Input Validation & Whitelisting: Server-side validation limits search parameters to alphanumeric characters. Blacklists block characters like ', ", ;, --, and /* */.
+
+* Least Privilege Access: Database user permissions are restricted strictly to necessary operations (SELECT, INSERT, UPDATE), disabling schema manipulation commands (DROP, ALTER).
+
+* Web Application Firewall (WAF): Deployed ModSecurity with OWASP Core Rule Set (CRS) to detect and block malicious pattern signatures before reaching application handlers.
+
+* Secure Error Handling: Replaced verbose SQL stack traces with generic HTTP 500 error responses (An unexpected error occurred), logging full error traces strictly server-side.
+
+---
+
+### Technical Outcomes & Use Cases
+### Key Accomplishments
+* **Vulnerability Verification:** Successfully identified and exploited 3 distinct SQL Injection flaw categories.
+
+* **Code Remediation:** Refactored vulnerable query mechanisms into secure, parameterized prepared statements.
+
+* **Verification Testing:** Verified post-remediation resilience—all baseline exploit payloads were rendered non-functional without loss of application utility.
+
+### Practical Industry Use Cases
+* **Penetration Testing & Red Teaming:** Demonstrates standard offensive workflows for vulnerability identification, payload craft, and impact reporting.
+
+* **Secure SDLC (SSDLC):** Shows how secure coding practices and code reviews prevent critical vulnerabilities prior to deployment.
+
+* **Compliance & Audit Readiness:** Fulfills mandatory vulnerability testing mandates under PCI-DSS (Req 6.3.2), OWASP ASVS, and ISO/IEC 27001.
+
+* **Security Awareness & Training:** Serves as a reference guide for developer training on threat modeling and defense-in-depth strategies.
